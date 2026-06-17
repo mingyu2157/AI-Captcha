@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: captcha-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    restart: always
+
+  ai:
+    build:
+      context: ./AI
+    container_name: captcha-ai
+    ports:
+      - "5000:5000"
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: captcha-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: always
+
+  database:
+    image: mysql:8.0
+    container_name: captcha-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: captcha
+      MYSQL_USER: captcha
+      MYSQL_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
