@@ -1,0 +1,18 @@
+# Python 이미지
+FROM python:3.12.13-slim
+
+# 작업 폴더
+WORKDIR /app
+
+# 의존성 복사
+COPY requirements.txt .
+
+# 패키지 설치
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 프로젝트 복사
+COPY . .
+
+# FastAPI 실행
+CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
