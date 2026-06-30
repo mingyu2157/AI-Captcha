@@ -64,7 +64,7 @@ export default function GuidePage({ openPage }) {
   const [hovered, setHovered] = useState(null);
 
   return (
-    <section className="band tint" id="guide">
+    <section className="band" id="guide">
       <div className="wrap">
         <div className="sec-head">
           <span className="eyebrow">Guide · API 사용법</span>
