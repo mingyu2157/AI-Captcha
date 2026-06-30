@@ -1,3 +1,5 @@
+// Cases.jsx
+
 import React from 'react';
 
 const cases = [
@@ -9,7 +11,7 @@ const cases = [
 
 export default function Cases() {
   return (
-    <section className="band tint" id="cases">
+    <section className="band" id="cases">
       <div className="wrap">
         <div className="sec-head">
           <span className="eyebrow">Use Cases</span>

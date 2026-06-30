@@ -27,7 +27,7 @@ export default function ApplyPage({ openPage, initialPlan = 'Pro' }) {
   };
 
   return (
-    <div className="po-body" style={{ maxWidth: 560 }}>
+    <div className="po-body">
       <div className="pg-eyebrow">SC-15 · API Key 발급 신청</div>
       <h1 className="pg-h1">이용 신청</h1>
       <p className="pg-sub">요금제를 선택하고 신청을 완료하면 API Key가 즉시 발급됩니다.</p>
