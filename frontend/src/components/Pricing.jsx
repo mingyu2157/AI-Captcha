@@ -1,3 +1,5 @@
+// Pricing.jsx
+
 import React from 'react';
 
 const plans = [
@@ -41,7 +43,7 @@ const plans = [
 
 export default function Pricing({ openPage, openPlanPayment }) {
   return (
-    <section className="band" id="pricing">
+    <section className="band tint" id="pricing">
       <div className="wrap">
         <div className="sec-head" style={{ maxWidth: '100%', textAlign: 'center', marginLeft: 'auto', marginRight: 'auto' }}>
           <span className="eyebrow">Pricing</span>
