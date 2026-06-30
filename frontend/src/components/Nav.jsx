@@ -24,11 +24,11 @@ export default function Nav({ openPage }) {
             <a href="#flow">동작 과정</a>
             <a href="#cases">사용 사례</a>
             <a href="#pricing">가격</a>
-            <a href="#" onClick={e => { e.preventDefault(); openPage('guide'); }}>가이드</a>
+            <a href="#guide" onClick={e => { e.preventDefault(); document.getElementById('guide')?.scrollIntoView({ behavior: 'smooth' }); }}>가이드</a>
             <a href="#" onClick={e => { e.preventDefault(); openPage('board'); }}>공지/FAQ</a>
           </div>
           <a className="btn btn-ghost" href="#" onClick={e => { e.preventDefault(); openPage('login'); }}>로그인</a>
-          <a className="btn btn-primary" href="#" onClick={e => { e.preventDefault(); openPage('apply'); }}>무료로 시작하기</a>
+          <a className="btn btn-primary" href="#pricing" onClick={e => { e.preventDefault(); document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' }); }}>시작하기</a>
           <button className="menu-toggle" aria-label="메뉴 열기">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#241B15" strokeWidth="2" strokeLinecap="round">
               <path d="M4 7h16M4 12h16M4 17h16"/>

@@ -9,7 +9,6 @@ import Hero from './components/Hero';
 import Compare from './components/Compare';
 import Metrics from './components/Metrics';
 import Flow from './components/Flow';
-import CTA from './components/CTA';
 import Cases from './components/Cases';
 import Pricing from './components/Pricing';
 import Footer from './components/Footer';
@@ -22,9 +21,8 @@ import MypagePage from './pages/MypagePage';
 import PaymentPage from './pages/PaymentPage';
 import GuidePage from './pages/GuidePage';
 import BoardPage from './pages/BoardPage';
-import ApplyPage from './pages/ApplyPage';
-import ApplyDonePage from './pages/ApplyDonePage';
 import PlanPayPage from './pages/PlanPayPage';
+import EnterprisePage from './pages/EnterprisePage';
 
 const PAGE_TITLES = {
   login:      '로그인',
@@ -61,6 +59,7 @@ function PageOverlay({ id, activePage, title, onBack, backLabel = '← 홈으로
 export default function App() {
   const [page, setPage] = useState(null);
   const [planPayArgs, setPlanPayArgs] = useState({ plan: 'Pro' });
+  const [mypageTab, setMypageTab] = useState('info');
 
   const openPage = (id) => setPage(id);
   const closePage = () => setPage(null);
@@ -85,9 +84,9 @@ export default function App() {
       <Compare />
       <Metrics />
       <Flow />
-      <CTA openPage={openPage} />
-      <Cases />
+<Cases />
       <Pricing openPage={openPage} openPlanPayment={openPlanPayment} />
+      <GuidePage openPage={openPage} />
       <Footer />
 
       {/* Chatbot FAB + Widget */}
@@ -120,7 +119,7 @@ export default function App() {
           </div>
         </div>
         <div className="po-body">
-          <MypagePage openPage={openPage} closePage={closePage} />
+          <MypagePage openPage={openPage} closePage={closePage} initialTab={mypageTab} />
         </div>
       </div>
 
@@ -134,15 +133,6 @@ export default function App() {
         <PaymentPage closePage={closePage} />
       </div>
 
-      {/* Guide */}
-      <div className={`page-overlay${page === 'guide' ? ' active' : ''}`}>
-        <div className="po-nav">
-          <button className="po-back" onClick={closePage}>← 홈으로</button>
-          <span className="po-title">사용자 가이드</span>
-        </div>
-        <GuidePage openPage={openPage} />
-      </div>
-
       {/* Board */}
       <div className={`page-overlay${page === 'board' ? ' active' : ''}`}>
         <div className="po-nav">
@@ -152,22 +142,13 @@ export default function App() {
         <BoardPage />
       </div>
 
-      {/* Apply */}
-      <div className={`page-overlay${page === 'apply' ? ' active' : ''}`}>
+      {/* Enterprise Inquiry */}
+      <div className={`page-overlay${page === 'enterprise' ? ' active' : ''}`}>
         <div className="po-nav">
-          <button className="po-back" onClick={closePage}>← 홈으로</button>
-          <span className="po-title">이용 신청</span>
+          <button className="po-back" onClick={closePage}>← 요금제로</button>
+          <span className="po-title" dangerouslySetInnerHTML={{ __html: 'AI<b style="color:var(--orange)">CAPTCHA</b> · Enterprise 도입 문의' }}/>
         </div>
-        <ApplyPage openPage={openPage} />
-      </div>
-
-      {/* Apply Done */}
-      <div className={`page-overlay${page === 'apply-done' ? ' active' : ''}`}>
-        <div className="po-nav">
-          <button className="po-back" onClick={closePage}>← 홈으로</button>
-          <span className="po-title">이용 신청 완료</span>
-        </div>
-        <ApplyDonePage openPage={openPage} closePage={closePage} />
+        <EnterprisePage closePage={closePage} />
       </div>
 
       {/* Plan Payment */}
@@ -179,7 +160,7 @@ export default function App() {
             <span style={{ fontSize: 11, background: 'var(--peach)', color: 'var(--orange-2)', padding: '4px 10px', borderRadius: 999, fontWeight: 600 }}>TEST MODE · 실제 결제 없음</span>
           </div>
         </div>
-        <PlanPayPage planName={planPayArgs.plan} closePage={closePage} openPage={openPage} />
+        <PlanPayPage planName={planPayArgs.plan} closePage={closePage} openPage={openPage} openMypageOnApiKey={openMypageOnApiKey} />
       </div>
     </>
   );

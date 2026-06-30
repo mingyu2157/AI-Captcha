@@ -11,7 +11,7 @@ const plans = [
       { ok: false, text: '우선 기술 지원' },
       { ok: false, text: 'SLA 보장' },
     ],
-    btnLabel: '무료로 시작하기', btnClass: 'pg-btn',
+    btnLabel: '무료로 시작하기', btnClass: 'pg-btn primary',
   },
   {
     tier: 'Pro', price: '₩89,000', period: '/월', desc: '월 500,000 호출', featured: true, badge: '가장 인기',
@@ -66,8 +66,9 @@ export default function Pricing({ openPage, openPlanPayment }) {
                 className={plan.btnClass}
                 style={{ width: '100%', padding: 14, marginTop: 'auto' }}
                 onClick={() => {
-                  if (plan.tier === 'Pro') openPlanPayment('Pro', '89,000');
-                  else { openPage('apply'); }
+                  if (plan.tier === 'Pro') openPlanPayment('Pro');
+                  else if (plan.tier === 'Basic') openPlanPayment('Basic');
+                  else if (plan.tier === 'Enterprise') openPage('enterprise');
                 }}
               >
                 {plan.btnLabel}
