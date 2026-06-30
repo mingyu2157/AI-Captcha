@@ -244,7 +244,11 @@ section.band {
   justify-content: center;
 }
 .band.tint { background: var(--peach); }
-.sec-head { max-width: 640px; margin-bottom: 40px; }
+.sec-head {
+  max-width: 640px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
 .sec-head h2 {
   font-size: clamp(28px,3.4vw,40px); line-height: 1.1; margin: 14px 0 0;
   font-weight: 700; letter-spacing: -.03em;
