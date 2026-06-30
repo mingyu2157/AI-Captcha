@@ -15,7 +15,7 @@ export default function Hero({ openPage }) {
           </p>
           <div className="hero-cta">
             <a className="btn btn-primary btn-lg" href="#demo">지금 체험하기</a>
-            <a className="btn btn-outline btn-lg" href="#" onClick={e => { e.preventDefault(); openPage('apply'); }}>API 신청</a>
+            <a className="btn btn-outline btn-lg" href="#pricing" onClick={e => { e.preventDefault(); document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' }); }}>요금제 보기</a>
           </div>
           <div className="hero-meta">
             <div><span className="n">1.4s</span><span className="l">평균 통과 시간</span></div>

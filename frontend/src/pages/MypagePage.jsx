@@ -151,7 +151,7 @@ function ApiKeyTab({ openPage }) {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="pg-btn primary" onClick={reissue}>재발급</button>
-          <button className="pg-btn" onClick={() => openPage('guide')}>사용 가이드 보기</button>
+          <button className="pg-btn" onClick={() => { closePage(); setTimeout(() => document.getElementById('guide')?.scrollIntoView({ behavior: 'smooth' }), 300); }}>사용 가이드 보기</button>
         </div>
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12 }}>재발급 시 기존 Key는 즉시 만료됩니다.</p>
       </div>
@@ -264,8 +264,12 @@ const TABS = [
   { id: 'deactivate', label: '계정 탈퇴', danger: true },
 ];
 
-export default function MypagePage({ openPage, closePage }) {
-  const [activeTab, setActiveTab] = useState('info');
+export default function MypagePage({ openPage, closePage, initialTab = 'info' }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   return (
     <div className="mp-wrap">
