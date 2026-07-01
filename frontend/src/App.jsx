@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import './styles/main.css';
 import homeIcon from './assets/home.png';
+import vlurLogo from './assets/vlur-logo-transparent-hq-2x.png';
 
 // Layout components
 import Nav from './components/Nav';
@@ -37,6 +38,17 @@ const PAGE_TITLES = {
   'plan-pay': '요금제 결제',
 };
 
+function BrandLogo() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <img src={vlurLogo} alt="VLUR" style={{ height: 32, width: 'auto' }} />
+      <span style={{ fontFamily: 'var(--disp)', fontWeight: 800, fontSize: 15, letterSpacing: '-.01em', color: 'var(--ink)' }}>
+        VLUR <span style={{ color: 'var(--orange)' }}>CAPTCHA</span>
+      </span>
+    </div>
+  );
+}
+
 function HomeButton({ onClick }) {
   return (
     <button className="po-back po-home" onClick={onClick} aria-label="홈으로" title="홈으로">
@@ -57,7 +69,7 @@ function PageOverlay({ id, activePage, title, onBack, extra, children }) {
     <div className={`page-overlay${isActive ? ' active' : ''}`}>
       <div className="po-nav">
         <HomeButton onClick={onBack} />
-        <span className="po-title" dangerouslySetInnerHTML={{ __html: 'AI<b style="color:var(--orange)">CAPTCHA</b>' }}/>
+        <BrandLogo />
         {extra}
       </div>
       {children}
@@ -69,9 +81,12 @@ export default function App() {
   const [page, setPage] = useState(null);
   const [planPayArgs, setPlanPayArgs] = useState({ plan: 'Pro' });
   const [mypageTab, setMypageTab] = useState('info');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const openPage = (id) => setPage(id);
   const closePage = () => setPage(null);
+  const handleLogin = () => { setIsLoggedIn(true); closePage(); };
+  const handleLogout = () => { setIsLoggedIn(false); closePage(); };
 
   const openPlanPayment = (plan) => {
     setPlanPayArgs({ plan });
@@ -92,7 +107,7 @@ export default function App() {
   return (
     <>
       {/* Main page */}
-      <Nav openPage={openPage} />
+      <Nav openPage={openPage} isLoggedIn={isLoggedIn} onLogout={handleLogout} />
       <a id="top"/>
       <Hero openPage={openPage} />
       <Compare />
@@ -110,14 +125,14 @@ export default function App() {
 
       {/* Login */}
       <PageOverlay id="login" activePage={page} onBack={closePage}>
-        <LoginPage openPage={openPage} closePage={closePage} />
+        <LoginPage openPage={openPage} closePage={closePage} onLogin={handleLogin} />
       </PageOverlay>
 
       {/* Signup */}
       <div className={`page-overlay${page === 'signup' ? ' active' : ''}`}>
         <div className="po-nav">
           <button className="po-back" onClick={() => openPage('login')}>로그인으로</button>
-          <span className="po-title" dangerouslySetInnerHTML={{ __html: 'AI<b style="color:var(--orange)">CAPTCHA</b>' }}/>
+          <BrandLogo />
         </div>
         <SignupPage openPage={openPage} />
       </div>
@@ -129,7 +144,7 @@ export default function App() {
           <span className="po-title">마이페이지</span>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             <span style={{ fontSize: 14, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center' }}>홍길동님</span>
-            <button className="pg-btn" style={{ fontSize: 13, padding: '7px 14px' }} onClick={closePage}>로그아웃</button>
+            <button className="pg-btn" style={{ fontSize: 13, padding: '7px 14px' }} onClick={handleLogout}>로그아웃</button>
           </div>
         </div>
         <div className="po-body">
@@ -160,7 +175,7 @@ export default function App() {
       <div className={`page-overlay${page === 'enterprise' ? ' active' : ''}`}>
         <div className="po-nav">
           <HomeButton onClick={closePage} />
-          <span className="po-title" dangerouslySetInnerHTML={{ __html: 'AI<b style="color:var(--orange)">CAPTCHA</b> · Enterprise 도입 문의' }}/>
+          <BrandLogo />
         </div>
         <EnterprisePage closePage={closePage} />
       </div>
@@ -169,7 +184,7 @@ export default function App() {
       <div className={`page-overlay${page === 'plan-pay' ? ' active' : ''}`}>
         <div className="po-nav">
           <HomeButton onClick={closePage} />
-          <span className="po-title" dangerouslySetInnerHTML={{ __html: 'AI<b style="color:var(--orange)">CAPTCHA</b> · 요금제 결제' }}/>
+          <BrandLogo />
           <div style={{ marginLeft: 'auto' }}>
             <span style={{ fontSize: 11, background: 'var(--peach)', color: 'var(--orange-2)', padding: '4px 10px', borderRadius: 999, fontWeight: 600 }}>TEST MODE · 실제 결제 없음</span>
           </div>

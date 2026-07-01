@@ -129,7 +129,7 @@ h1 .hl::after {
     margin-top:42px;
 }
 .btn-lg { padding: 15px 26px; font-size: 16px; border-radius: 14px; }
-.btn-outline { background: #fff; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-outline { background: #fff; color: var(--ink); border: 1.5px solid var(--line); padding: 10px 18px; font-size: 14.5px; }
 .btn-outline:hover { border-color: var(--orange); color: var(--orange-2); }
 .hero-meta{
     display:flex;
@@ -372,15 +372,16 @@ section.band {
 .cta-band .btn:hover { transform: translateY(-2px); }
 
 /* FOOTER */
-footer { padding: 54px 0 40px; border-top: 1px solid var(--line); background: var(--paper); }
+footer { border-top: 1px solid var(--line); background: var(--paper); }
+.foot-dark { background: #111; padding: 48px 0 40px; }
 .foot { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; align-items: flex-start; }
 .foot .brand { margin-bottom: 12px; }
-.foot p { color: var(--muted); font-size: 14px; max-width: 30em; margin: 0; }
+.foot p { color: rgba(255,255,255,0.5); font-size: 14px; max-width: 30em; margin: 0; }
 .foot-links { display: flex; gap: 28px; flex-wrap: wrap; }
-.foot-links a { color: var(--ink-soft); font-size: 14.5px; }
-.foot-links a:hover { color: var(--orange-2); }
+.foot-links a { color: rgba(255,255,255,0.65); font-size: 14.5px; }
+.foot-links a:hover { color: var(--orange); }
 .foot-base {
-  margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line-soft);
+  margin-top: 0; padding: 20px 0;
   display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 13px;
 }
 

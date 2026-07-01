@@ -105,7 +105,7 @@ function FindPwModal({ onClose }) {
 }
 
 /* ── 메인 로그인 페이지 ── */
-export default function LoginPage({ openPage, closePage }) {
+export default function LoginPage({ openPage, closePage, onLogin }) {
   const [modal, setModal] = useState(null); // null | 'findId' | 'findPw'
 
   return (
@@ -118,7 +118,7 @@ export default function LoginPage({ openPage, closePage }) {
           <input className="pg-input" placeholder="아이디"/>
           <input className="pg-input" type="password" placeholder="비밀번호"/>
           <button className="pg-btn primary" style={{ width: '100%', padding: 15, fontSize: 16 }}
-            onClick={() => openPage('mypage')}>로그인</button>
+            onClick={onLogin}>로그인</button>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted)' }}>
             <button onClick={() => setModal('findId')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 13, padding: 0 }}>
