@@ -43,6 +43,12 @@ export default function Nav({ openPage, isLoggedIn, onLogout }) {
     openPage(page);
   };
 
+  const handleNoticeClick = (event) => {
+    event.preventDefault();
+    closeMobileMenu();
+    openPage('board');
+  };
+
   return (
     <header className="site-header">
       <div className="wrap nav">
@@ -64,6 +70,7 @@ export default function Nav({ openPage, isLoggedIn, onLogout }) {
                 {item.label}
               </a>
             ))}
+            <a href="#faq" onClick={handleNoticeClick}>공지사항</a>
           </div>
           <div className="nav-auth">
             {isLoggedIn ? (
@@ -96,7 +103,7 @@ export default function Nav({ openPage, isLoggedIn, onLogout }) {
         className={`mobile-menu${mobileOpen ? ' open' : ''}`}
         id="mobile-home-menu"
       >
-        <a href="#faq" onClick={(event) => handleMobilePageClick(event, 'board')}>공지/FAQ</a>
+        <a href="#faq" onClick={handleNoticeClick}>공지사항</a>
         <a href="#login" onClick={(event) => handleMobilePageClick(event, 'login')}>로그인</a>
       </div>
     </header>
