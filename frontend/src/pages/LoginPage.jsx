@@ -201,7 +201,7 @@ function FindPwModal({ onClose }) {
 }
 
 /* ── 메인 로그인 페이지 ── */
-export default function LoginPage({ openPage, closePage }) {
+export default function LoginPage({ openPage, closePage, onLogin }) {
   const [modal, setModal] = useState(null); // null | 'findId' | 'findPw'
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
