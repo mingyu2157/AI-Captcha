@@ -23,16 +23,24 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-/* ── 비밀번호 변경 모달 ── */
 function ChangePwModal({ onClose }) {
   const [done, setDone] = useState(false);
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [attempted, setAttempted] = useState(false);   // ← 추가
 
   const isValid = current.trim() && next.trim() && confirm.trim();
 
   const errorStyle = { border: '1.5px solid #c0392b' };
+
+  const handleChange = () => {
+    if (!isValid) {
+      setAttempted(true);
+      return;
+    }
+    setDone(true);
+  };
 
   return (
     <Modal title="비밀번호 변경" onClose={onClose}>
@@ -44,7 +52,7 @@ function ChangePwModal({ onClose }) {
             value={current}
             onChange={e => setCurrent(e.target.value)}
             placeholder="현재 비밀번호"
-            style={!current.trim() ? errorStyle : {}}
+            style={attempted && !current.trim() ? errorStyle : {}}
           />
           <input
             className="pg-input"
@@ -52,7 +60,7 @@ function ChangePwModal({ onClose }) {
             value={next}
             onChange={e => setNext(e.target.value)}
             placeholder="새 비밀번호"
-            style={!next.trim() ? errorStyle : {}}
+            style={attempted && !next.trim() ? errorStyle : {}}
           />
           <input
             className="pg-input"
@@ -60,7 +68,7 @@ function ChangePwModal({ onClose }) {
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             placeholder="새 비밀번호 확인"
-            style={!confirm.trim() ? errorStyle : {}}
+            style={attempted && !confirm.trim() ? errorStyle : {}}
           />
           <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>영문·숫자·특수문자 포함 8자 이상</p>
           <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
@@ -68,8 +76,7 @@ function ChangePwModal({ onClose }) {
             <button
               className="pg-btn primary"
               style={{ flex: 1, padding: 13, opacity: isValid ? 1 : 0.5, cursor: isValid ? 'pointer' : 'not-allowed' }}
-              onClick={() => setDone(true)}
-              disabled={!isValid}
+              onClick={handleChange}
             >변경하기</button>
           </div>
         </div>
@@ -84,16 +91,24 @@ function ChangePwModal({ onClose }) {
   );
 }
 
-/* ── 정보 수정 모달 ── */
 function EditInfoModal({ onClose }) {
   const [done, setDone] = useState(false);
   const [name, setName] = useState('홍길동');
   const [email, setEmail] = useState('user@example.com');
   const [phone, setPhone] = useState('010-1234-5678');
+  const [attempted, setAttempted] = useState(false);   // ← 추가
 
   const isValid = name.trim() && email.trim() && phone.trim();
 
   const errorStyle = { border: '1.5px solid #c0392b' };
+
+  const handleSave = () => {                            // ← 추가
+    if (!isValid) {
+      setAttempted(true);
+      return;
+    }
+    setDone(true);
+  };
 
   return (
     <Modal title="정보 수정" onClose={onClose}>
@@ -104,7 +119,7 @@ function EditInfoModal({ onClose }) {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="이름"
-            style={!name.trim() ? errorStyle : {}}
+            style={attempted && !name.trim() ? errorStyle : {}}
           />
           <input
             className="pg-input"
@@ -112,7 +127,7 @@ function EditInfoModal({ onClose }) {
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="이메일"
-            style={!email.trim() ? errorStyle : {}}
+            style={attempted && !email.trim() ? errorStyle : {}}
           />
           <input
             className="pg-input"
@@ -120,15 +135,14 @@ function EditInfoModal({ onClose }) {
             value={phone}
             onChange={e => setPhone(e.target.value)}
             placeholder="휴대폰 번호"
-            style={!phone.trim() ? errorStyle : {}}
+            style={attempted && !phone.trim() ? errorStyle : {}}
           />
           <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
             <button className="pg-btn" style={{ flex: 1, padding: 13 }} onClick={onClose}>취소</button>
             <button
               className="pg-btn primary"
               style={{ flex: 1, padding: 13, opacity: isValid ? 1 : 0.5, cursor: isValid ? 'pointer' : 'not-allowed' }}
-              onClick={() => setDone(true)}
-              disabled={!isValid}
+              onClick={handleSave}
             >저장</button>
           </div>
         </div>
