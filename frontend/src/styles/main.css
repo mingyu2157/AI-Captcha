@@ -711,6 +711,7 @@ footer { border-top: 1px solid var(--line); background: var(--paper); }
 .cases-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
 .case-card { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 28px 22px; transition: .18s; }
 .case-card:hover { border-color: var(--gold); box-shadow: var(--shadow-sm); }
+#cases .case-card:hover { border-color: var(--line); box-shadow: none; }
 .case-icon { font-size: 30px; margin-bottom: 14px; }
 .case-card h3 { font-size: 16px; font-weight: 700; margin: 0 0 8px; letter-spacing: -.015em; }
 .case-card p { font-size: 13.5px; color: var(--ink-soft); margin: 0; line-height: 1.6; }
