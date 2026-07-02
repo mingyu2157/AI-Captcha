@@ -1,6 +1,6 @@
 // MypagePage.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 const realKey = 'sk-aicap_prod_7f3a91b2c4d5e6f789012345xxxx';
 
@@ -328,32 +328,297 @@ function ApiKeyTab({ openPage }) {
   );
 }
 
+const DAILY_USAGE_VALUES = [
+  820, 1100, 950, 1240, 1380, 990, 670, 1050, 1180, 1320,
+  880, 740, 1060, 1290, 1100, 930, 1040, 1170, 1350, 990,
+  850, 1080, 1250, 1060, 970, 1130, 1200, 1340, 1180, 1240,
+];
+const MONTHLY_USAGE_LABELS = [
+  '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12',
+  '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06',
+];
+const MONTHLY_USAGE_VALUES = [18000, 22000, 19500, 24000, 28000, 31200, 29800, 33000, 27000, 30500, 31200, 32800];
+const formatNumber = new Intl.NumberFormat('ko-KR').format;
+
+function addDays(dateString, days) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return date.toISOString().slice(0, 10);
+}
+
+function shiftMonth(monthKey, amount) {
+  const [year, month] = monthKey.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1 + amount, 1));
+  return date.toISOString().slice(0, 7);
+}
+
+function getMonthTitle(monthKey) {
+  const [year, month] = monthKey.split('-').map(Number);
+  return `${year}년 ${month}월`;
+}
+
+function getCalendarDays(monthKey) {
+  const [year, month] = monthKey.split('-').map(Number);
+  const firstDay = new Date(Date.UTC(year, month - 1, 1));
+  const gridStart = new Date(Date.UTC(year, month - 1, 1 - firstDay.getUTCDay()));
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart);
+    date.setUTCDate(gridStart.getUTCDate() + index);
+    const dateString = date.toISOString().slice(0, 10);
+
+    return {
+      date: dateString,
+      day: date.getUTCDate(),
+      isCurrentMonth: dateString.slice(0, 7) === monthKey,
+    };
+  });
+}
+
+const DAILY_USAGE_DATA = DAILY_USAGE_VALUES.map((issued, index) => {
+  const ratio = 0.958 + ((index % 5) * 0.003);
+  return {
+    date: addDays('2026-05-14', index),
+    issued,
+    verified: Math.round(issued * ratio),
+  };
+});
+const MONTHLY_USAGE_DATA = MONTHLY_USAGE_VALUES.map((issued, index) => ({
+  month: MONTHLY_USAGE_LABELS[index],
+  issued,
+}));
+const DEFAULT_USAGE_START_DATE = DAILY_USAGE_DATA[0].date;
+const DEFAULT_USAGE_END_DATE = DAILY_USAGE_DATA[DAILY_USAGE_DATA.length - 1].date;
+const TODAY_DATE = new Date().toISOString().slice(0, 10);
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+
+function getSuccessRate(row) {
+  if (!row.issued) return '-';
+  return `${((row.verified / row.issued) * 100).toFixed(1)}%`;
+}
+
+function UsageBarChart({ data, labelKey, valueKey = 'issued', emptyMessage }) {
+  const max = Math.max(0, ...data.map((row) => row[valueKey]));
+
+  if (!data.length || max === 0) {
+    return <div className="usage-empty-state">{emptyMessage}</div>;
+  }
+
+  return (
+    <div className="usage-chart-bars">
+      {data.map((row) => {
+        const value = row[valueKey];
+        const height = Math.max(3, Math.round((value / max) * 100));
+        return (
+          <div
+            className="usage-chart-bar"
+            key={row[labelKey]}
+            title={`${row[labelKey]} · ${formatNumber(value)}회`}
+            style={{ height: `${height}%` }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── SC-09 사용량 탭 ── */
 function UsageTab() {
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [appliedRange, setAppliedRange] = useState(null);
+  const [calendarMonth, setCalendarMonth] = useState(DEFAULT_USAGE_END_DATE.slice(0, 7));
+  const [dateError, setDateError] = useState('');
+  const datePickerRef = useRef(null);
+
   useEffect(() => {
-    const drawBar = (id, data) => {
-      const el = document.getElementById(id);
-      if (!el || el.children.length > 0) return;
-      const max = Math.max(...data);
-      data.forEach(v => {
-        const b = document.createElement('div');
-        b.style.cssText = `flex:1;background:linear-gradient(180deg,var(--orange),var(--gold));border-radius:3px 3px 0 0;height:${Math.round(v/max*100)}%;min-height:3px;opacity:.85`;
-        el.appendChild(b);
-      });
+    if (!isDatePickerOpen) return undefined;
+
+    const handleMouseDown = (event) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setIsDatePickerOpen(false);
+      }
     };
-    drawBar('chart-daily',   [820,1100,950,1240,1380,990,670,1050,1180,1320,880,740,1060,1290,1100,930,1040,1170,1350,990,850,1080,1250,1060,970,1130,1200,1340,1180,1240]);
-    drawBar('chart-monthly', [18000,22000,19500,24000,28000,31200,29800,33000,27000,30500,31200,32800]);
-  }, []);
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setIsDatePickerOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDatePickerOpen]);
+
+  const activeRange = appliedRange || {
+    start: DEFAULT_USAGE_START_DATE,
+    end: DEFAULT_USAGE_END_DATE,
+  };
+
+  const filteredDailyUsageData = useMemo(() => (
+    DAILY_USAGE_DATA.filter((row) => (
+      row.date >= activeRange.start && row.date <= activeRange.end
+    ))
+  ), [activeRange.start, activeRange.end]);
+
+  const usageTableRows = useMemo(() => (
+    [...filteredDailyUsageData].reverse()
+  ), [filteredDailyUsageData]);
+
+  const periodLabel = appliedRange
+    ? appliedRange.start === appliedRange.end
+      ? appliedRange.start
+      : `${appliedRange.start} ~ ${appliedRange.end}`
+    : '기간 선택';
+
+  const calendarDays = useMemo(() => getCalendarDays(calendarMonth), [calendarMonth]);
+
+  const selectCalendarDate = (dateString) => {
+    setDateError('');
+
+    if (!startDate || endDate) {
+      setStartDate(dateString);
+      setEndDate('');
+      setCalendarMonth(dateString.slice(0, 7));
+      return;
+    }
+
+    if (dateString < startDate) {
+      setStartDate(dateString);
+      setEndDate(startDate);
+    } else {
+      setEndDate(dateString);
+    }
+    setCalendarMonth(dateString.slice(0, 7));
+  };
+
+  const getDateCellClassName = (day) => {
+    const hasRange = startDate && endDate;
+    const isStart = day.date === startDate;
+    const isEnd = day.date === endDate;
+    const isInRange = hasRange && day.date >= startDate && day.date <= endDate;
+
+    return [
+      'usage-calendar-day',
+      !day.isCurrentMonth ? 'muted' : '',
+      day.date === TODAY_DATE ? 'today' : '',
+      isInRange ? 'in-range' : '',
+      isStart || isEnd ? 'selected' : '',
+      isStart ? 'range-start' : '',
+      isEnd ? 'range-end' : '',
+    ].filter(Boolean).join(' ');
+  };
+
+  const applyDateRange = () => {
+    if (!startDate) {
+      setDateError('조회할 날짜를 선택해주세요.');
+      return;
+    }
+    const normalizedStart = startDate;
+    const normalizedEnd = endDate || startDate;
+
+    if (normalizedStart > normalizedEnd) {
+      setDateError('시작일은 종료일보다 늦을 수 없습니다.');
+      return;
+    }
+
+    setAppliedRange({ start: normalizedStart, end: normalizedEnd });
+    setDateError('');
+    setIsDatePickerOpen(false);
+  };
+
+  const resetDateRange = () => {
+    setStartDate('');
+    setEndDate('');
+    setCalendarMonth(DEFAULT_USAGE_END_DATE.slice(0, 7));
+    setAppliedRange(null);
+    setDateError('');
+  };
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <div>
           <div className="pg-label">SC-09 · 사용량 조회</div>
           <h2 className="pg-h2">사용량 조회</h2>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="pg-btn" style={{ fontSize: 13, padding: '8px 14px' }}>기간 선택 ▾</button>
+        <div className="usage-actions">
+          <div className="usage-date-picker" ref={datePickerRef}>
+            <button
+              className="pg-btn"
+              type="button"
+              aria-expanded={isDatePickerOpen}
+              aria-controls="usage-date-picker-panel"
+              style={{ fontSize: 13, padding: '8px 14px' }}
+              onClick={() => {
+                setDateError('');
+                setIsDatePickerOpen((open) => !open);
+              }}
+            >
+              {periodLabel} ▾
+            </button>
+
+            {isDatePickerOpen && (
+              <div className="usage-date-panel" id="usage-date-picker-panel">
+                <div className="usage-date-chips">
+                  <span><b>시작일</b>{startDate || '미선택'}</span>
+                  <span><b>종료일</b>{endDate || '미선택'}</span>
+                </div>
+
+                <div className="usage-calendar-header">
+                  <button
+                    className="usage-calendar-nav"
+                    type="button"
+                    aria-label="이전 달"
+                    onClick={() => setCalendarMonth((month) => shiftMonth(month, -1))}
+                  >
+                    ‹
+                  </button>
+                  <div className="usage-calendar-title">{getMonthTitle(calendarMonth)}</div>
+                  <button
+                    className="usage-calendar-nav"
+                    type="button"
+                    aria-label="다음 달"
+                    onClick={() => setCalendarMonth((month) => shiftMonth(month, 1))}
+                  >
+                    ›
+                  </button>
+                </div>
+
+                <div className="usage-calendar-weekdays" aria-hidden="true">
+                  {WEEKDAY_LABELS.map((label) => (
+                    <span key={label}>{label}</span>
+                  ))}
+                </div>
+
+                <div className="usage-calendar-grid">
+                  {calendarDays.map((day) => (
+                    <button
+                      className={getDateCellClassName(day)}
+                      key={day.date}
+                      type="button"
+                      aria-label={`${day.date} 선택`}
+                      aria-pressed={day.date === startDate || day.date === endDate}
+                      onClick={() => selectCalendarDate(day.date)}
+                    >
+                      {day.day}
+                    </button>
+                  ))}
+                </div>
+
+                {dateError && <p className="usage-date-error">{dateError}</p>}
+                <div className="usage-date-buttons">
+                  <button className="pg-btn" type="button" onClick={() => setIsDatePickerOpen(false)}>닫기</button>
+                  <div className="usage-date-action-group">
+                    <button className="pg-btn" type="button" onClick={resetDateRange}>초기화</button>
+                    <button className="pg-btn primary" type="button" onClick={applyDateRange}>적용</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           <button className="pg-btn" style={{ fontSize: 13, padding: '8px 14px' }}>CSV 다운로드</button>
         </div>
       </div>
@@ -366,21 +631,41 @@ function UsageTab() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
         <div className="pg-card" style={{ minHeight: 160, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div className="pg-label" style={{ margin: 0 }}>일별 호출량 (최근 30일)</div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 3, paddingTop: 8 }} id="chart-daily"/>
+          <div className="pg-label" style={{ margin: 0 }}>일별 호출량 ({appliedRange ? '선택 기간' : '최근 30일'})</div>
+          <UsageBarChart
+            data={filteredDailyUsageData}
+            labelKey="date"
+            emptyMessage="선택한 기간의 사용량 데이터가 없습니다."
+          />
         </div>
         <div className="pg-card" style={{ minHeight: 160, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div className="pg-label" style={{ margin: 0 }}>월별 호출량 (최근 12개월)</div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 4, paddingTop: 8 }} id="chart-monthly"/>
+          <UsageBarChart
+            data={MONTHLY_USAGE_DATA}
+            labelKey="month"
+            emptyMessage="월별 사용량 데이터가 없습니다."
+          />
         </div>
       </div>
       <table className="pg-table">
         <thead><tr><th>날짜</th><th>CAPTCHA 발급</th><th>CAPTCHA 검증</th><th>성공률</th></tr></thead>
         <tbody>
-          <tr><td>2026-06-12</td><td>1,240</td><td>1,198</td><td>96.6%</td></tr>
-          <tr><td>2026-06-11</td><td>1,180</td><td>1,142</td><td>96.8%</td></tr>
-          <tr><td>2026-06-10</td><td>995</td><td>961</td><td>96.6%</td></tr>
-          <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>— 더보기 —</td></tr>
+          {usageTableRows.length > 0 ? (
+            usageTableRows.map((row) => (
+              <tr key={row.date}>
+                <td>{row.date}</td>
+                <td>{formatNumber(row.issued)}</td>
+                <td>{formatNumber(row.verified)}</td>
+                <td>{getSuccessRate(row)}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+                선택한 기간의 사용량 데이터가 없습니다.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </>
