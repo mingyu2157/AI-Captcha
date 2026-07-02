@@ -74,12 +74,10 @@ function matchFaq(rawInput) {
   for (const item of FAQ_TREE) {
     let score = 0;
 
-    // 질문 전체 문자열 포함 (기존 로직 유지, 가장 강한 신호)
     if (item.q.toLowerCase().includes(q) || q.includes(item.q.toLowerCase())) {
       score += 5;
     }
 
-    // 키워드 매칭 (부분 포함도 인정)
     for (const kw of item.keywords || []) {
       if (q.includes(kw.toLowerCase())) score += 2;
     }
@@ -155,11 +153,11 @@ export default function ChatbotWidget() {
     setFollows(item?.follow || QUICK_STARTS);
   };
 
-    const handleSend = () => {
+  const handleSend = () => {
     const q = input.trim();
     if (!q) return;
     setInput('');
-    const item = matchFaq(q);   // ← 여기 변경
+    const item = matchFaq(q);
     const newMsgs = [
       ...messages,
       { type: 'user', text: q },
@@ -197,8 +195,14 @@ export default function ChatbotWidget() {
       {/* Chat window */}
       {open && (
         <div style={{
-          position: 'fixed', right: 24, bottom: 96, zIndex: 59,
-          width: 360, maxHeight: 540,
+          position: 'fixed',
+          right: 24,
+          bottom: 96,
+          top: 100,
+          zIndex: 200,
+          width: 360,
+          maxWidth: 'calc(100vw - 48px)',
+          height: 'min(540px, calc(100dvh - 196px), calc(100vh - 196px))',
           background: 'var(--paper)', border: '1px solid var(--line)',
           borderRadius: 20, boxShadow: '0 24px 60px -16px rgba(36,27,21,.28)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -220,7 +224,15 @@ export default function ChatbotWidget() {
           </div>
 
           {/* Messages */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: 'auto',
+            padding: '16px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}>
             {messages.map((m, i) =>
               m.type === 'bot'
                 ? <BotBubble key={i} text={m.text} />
