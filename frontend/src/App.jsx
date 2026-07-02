@@ -186,7 +186,7 @@ export default function App() {
       {/* Signup */}
       <div className={`page-overlay${page === 'signup' ? ' active' : ''}`}>
         <div className="po-nav">
-          <button className="po-back" onClick={() => openPage('login')}>로그인으로</button>
+          <HomeButton onClick={closePage} />
           <BrandLogo />
         </div>
         <SignupPage openPage={openPage} />
