@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import vlurLogo from '../assets/vlur-logo-transparent-hq-2x.png';
 
 const PAGE_SIZE = 10;
@@ -57,7 +57,7 @@ function Pagination({ total, page, pageSize, onChange }) {
   );
 }
 
-function BoardDetail({ post, previousPost, nextPost, onBack, onSelectPost }) {
+function BoardDetail({ post, previousPost, nextPost, onBack, onSelectPost, onEdit }) {
   return (
     <article className="board-detail">
       <header className="board-detail-header">
@@ -72,12 +72,18 @@ function BoardDetail({ post, previousPost, nextPost, onBack, onSelectPost }) {
           </div>
         </div>
         <div className="board-detail-actions">
+          <button type="button" className="board-detail-edit" onClick={onEdit} aria-label="게시글 수정">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 20h4.2L19 9.2a2.1 2.1 0 0 0 0-3L17.8 5a2.1 2.1 0 0 0-3 0L4 15.8V20Z" />
+              <path d="m13.7 6.1 4.2 4.2" />
+            </svg>
+          </button>
           <button type="button" className="board-detail-list" onClick={onBack}>목록</button>
         </div>
       </header>
 
       <div className="board-detail-content">
-        <p>테스트입니다.</p>
+        <p>{post.content ?? '테스트입니다.'}</p>
       </div>
 
       <nav className="board-detail-neighbors" aria-label="이전 및 다음 게시글">
@@ -89,6 +95,115 @@ function BoardDetail({ post, previousPost, nextPost, onBack, onSelectPost }) {
         </button>
       </nav>
     </article>
+  );
+}
+
+function BoardWrite({ initialPost, onCancel, onSubmit }) {
+  const isEditing = Boolean(initialPost);
+  const [category, setCategory] = useState(
+    initialPost ? (initialPost.badge ? 'notice' : 'general') : 'notice'
+  );
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryRef = useRef(null);
+  const [title, setTitle] = useState(initialPost?.title ?? '');
+  const [content, setContent] = useState(initialPost ? (initialPost.content ?? '테스트입니다.') : '');
+
+  useEffect(() => {
+    const closeCategory = (event) => {
+      if (event.type === 'keydown') return;
+      if (event.type === 'mousedown' && categoryRef.current?.contains(event.target)) return;
+      setIsCategoryOpen(false);
+    };
+
+    document.addEventListener('mousedown', closeCategory);
+    document.addEventListener('keydown', closeCategory);
+    return () => {
+      document.removeEventListener('mousedown', closeCategory);
+      document.removeEventListener('keydown', closeCategory);
+    };
+  }, []);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+    if (!trimmedTitle || !trimmedContent) return;
+    onSubmit({
+      title: trimmedTitle,
+      content: trimmedContent,
+      badge: category === 'notice' ? '공지' : null,
+    });
+  };
+
+  return (
+    <form className="board-write" onSubmit={handleSubmit}>
+      <div className="board-write-fields">
+        <div className="board-write-field board-write-category-field">
+          <div className="board-write-select-wrap" ref={categoryRef}>
+            <button
+              type="button"
+              className={`board-write-select-trigger${isCategoryOpen ? ' open' : ''}`}
+              aria-haspopup="listbox"
+              aria-expanded={isCategoryOpen}
+              onClick={() => setIsCategoryOpen(open => !open)}
+            >
+              {category === 'notice' ? '공지' : '일반 글'}
+            </button>
+
+            {isCategoryOpen && (
+              <div className="board-write-select-menu" role="listbox" aria-label="게시글 분류">
+                {[
+                  ['notice', '공지'],
+                  ['general', '일반 글'],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="option"
+                    aria-selected={category === value}
+                    className={category === value ? 'selected' : ''}
+                    onClick={() => { setCategory(value); setIsCategoryOpen(false); }}
+                  >
+                    <span>{label}</span>
+                    {category === value && <b aria-hidden="true">✓</b>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="board-write-field board-write-title-field">
+          <input
+            type="text"
+            value={title}
+            maxLength={100}
+            aria-label="게시글 제목"
+            placeholder="제목을 입력하세요"
+            onChange={(event) => setTitle(event.target.value)}
+            required
+          />
+          <small>{title.length}/100</small>
+        </div>
+
+        <div className="board-write-field board-write-content-field">
+          <textarea
+            value={content}
+            maxLength={3000}
+            aria-label="게시글 내용"
+            placeholder="내용을 입력하세요"
+            onChange={(event) => setContent(event.target.value)}
+            required
+          />
+          <small>{content.length}/3000</small>
+        </div>
+      </div>
+
+      <div className="board-write-actions">
+        <button type="button" className="pg-btn" onClick={onCancel}>취소</button>
+        <button type="submit" className="pg-btn primary">{isEditing ? '수정 완료' : '등록'}</button>
+      </div>
+    </form>
   );
 }
 
@@ -174,35 +289,70 @@ function BoardHeader({ onHome, openPage, isLoggedIn, onLogout }) {
 export default function BoardPage({ closePage, openPage, onDetailChange, isLoggedIn, onLogout }) {
   const [tab, setTab] = useState('notice');
   const [noticePage, setNoticePage] = useState(1);
+  const [notices, setNotices] = useState(NOTICES);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [isWriting, setIsWriting] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
 
   useEffect(() => {
-    onDetailChange?.(Boolean(selectedPost));
-    if (selectedPost) {
+    onDetailChange?.(Boolean(selectedPost || isWriting));
+    if (selectedPost || isWriting) {
       document.querySelector('.page-overlay.active')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [selectedPost, onDetailChange]);
+  }, [selectedPost, isWriting, onDetailChange]);
 
   /* 공지사항 페이지네이션 */
-  const noticeSlice = NOTICES.slice((noticePage - 1) * PAGE_SIZE, noticePage * PAGE_SIZE);
-  const selectedIndex = selectedPost ? NOTICES.findIndex(post => post.id === selectedPost.id) : -1;
-  const previousPost = selectedIndex > 0 ? NOTICES[selectedIndex - 1] : null;
-  const nextPost = selectedIndex >= 0 && selectedIndex < NOTICES.length - 1 ? NOTICES[selectedIndex + 1] : null;
+  const noticeSlice = notices.slice((noticePage - 1) * PAGE_SIZE, noticePage * PAGE_SIZE);
+  const selectedIndex = selectedPost ? notices.findIndex(post => post.id === selectedPost.id) : -1;
+  const previousPost = selectedIndex > 0 ? notices[selectedIndex - 1] : null;
+  const nextPost = selectedIndex >= 0 && selectedIndex < notices.length - 1 ? notices[selectedIndex + 1] : null;
 
   const changeTab = (nextTab) => {
     setTab(nextTab);
     setNoticePage(1);
     setSelectedPost(null);
+    setIsWriting(false);
+    setEditingPost(null);
   };
 
-  if (selectedPost) {
+  const submitPost = ({ title, content, badge }) => {
+    if (editingPost) {
+      const updatedPost = { ...editingPost, title, content, badge };
+      setNotices(current => current.map(post => post.id === updatedPost.id ? updatedPost : post));
+      setSelectedPost(updatedPost);
+      setEditingPost(null);
+      setIsWriting(false);
+      return;
+    }
+
+    const now = new Date();
+    const date = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-');
+    const post = {
+      id: notices.reduce((highest, notice) => Math.max(highest, notice.id), 0) + 1,
+      badge,
+      title,
+      content,
+      date,
+    };
+
+    setNotices(current => [post, ...current]);
+    setNoticePage(1);
+    setIsWriting(false);
+    setSelectedPost(post);
+  };
+
+  if (selectedPost || isWriting) {
     return (
       <div className="board-page-shell">
         <BoardHeader
-          onHome={() => { setSelectedPost(null); closePage(); }}
-          openPage={(pageId) => { setSelectedPost(null); openPage(pageId); }}
+          onHome={() => { setSelectedPost(null); setIsWriting(false); setEditingPost(null); closePage(); }}
+          openPage={(pageId) => { setSelectedPost(null); setIsWriting(false); setEditingPost(null); openPage(pageId); }}
           isLoggedIn={isLoggedIn}
-          onLogout={() => { setSelectedPost(null); onLogout(); }}
+          onLogout={() => { setSelectedPost(null); setIsWriting(false); setEditingPost(null); onLogout(); }}
         />
 
         <main className="board-page-main">
@@ -211,16 +361,27 @@ export default function BoardPage({ closePage, openPage, onDetailChange, isLogge
 
             <section className="board-main-content" aria-labelledby="board-section-title">
               <div className="board-section-header">
-                <h1 className="pg-h1" id="board-section-title">공지사항</h1>
+                <h1 className="pg-h1" id="board-section-title">
+                  {isWriting ? (editingPost ? '글 수정' : '글쓰기') : '공지사항'}
+                </h1>
               </div>
 
-              <BoardDetail
-                post={selectedPost}
-                previousPost={previousPost}
-                nextPost={nextPost}
-                onBack={() => setSelectedPost(null)}
-                onSelectPost={setSelectedPost}
-              />
+              {isWriting ? (
+                <BoardWrite
+                  initialPost={editingPost}
+                  onCancel={() => { setIsWriting(false); setEditingPost(null); }}
+                  onSubmit={submitPost}
+                />
+              ) : (
+                <BoardDetail
+                  post={selectedPost}
+                  previousPost={previousPost}
+                  nextPost={nextPost}
+                  onBack={() => setSelectedPost(null)}
+                  onSelectPost={setSelectedPost}
+                  onEdit={() => { setEditingPost(selectedPost); setIsWriting(true); }}
+                />
+              )}
             </section>
           </div>
         </main>
@@ -273,9 +434,15 @@ export default function BoardPage({ closePage, openPage, onDetailChange, isLogge
           </table>
           <div className="board-list-footer">
             <div className="board-list-pagination">
-              <Pagination total={NOTICES.length} page={noticePage} pageSize={PAGE_SIZE} onChange={setNoticePage} />
+              <Pagination total={notices.length} page={noticePage} pageSize={PAGE_SIZE} onChange={setNoticePage} />
             </div>
-            <button type="button" className="pg-btn primary board-write-button">글쓰기</button>
+            <button
+              type="button"
+              className="pg-btn primary board-write-button"
+              onClick={() => { setEditingPost(null); setIsWriting(true); }}
+            >
+              글쓰기
+            </button>
           </div>
         </>
       )}
