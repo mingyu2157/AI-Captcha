@@ -75,17 +75,68 @@ export default function SignupPage({ openPage }) {
           onChange={e => setPhone(e.target.value)}
           style={attempted && !phone.trim() ? errorStyle : {}}
         />
-        <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--ink-soft)', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={e => setAgreed(e.target.checked)}
-            style={{
-              width: 17, height: 17, accentColor: 'var(--orange)',
-              outline: attempted && !agreed ? '2px solid #c0392b' : 'none',
-              outlineOffset: 2,
-            }}
-          />
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            fontSize: 14,
+            color: 'var(--ink-soft)',
+            cursor: 'pointer',
+          }}
+        >
+          <span style={{ position: 'relative', width: 20, height: 20, flexShrink: 0 }}>
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                margin: 0,
+                opacity: 0,
+                cursor: 'pointer',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: 6,
+                border: attempted && !agreed
+                  ? '1.5px solid #c0392b'
+                  : `1.5px solid ${agreed ? 'var(--orange)' : '#d8d0c4'}`,
+                background: agreed ? 'var(--orange)' : '#fff',
+                transition: 'background 0.15s ease, border-color 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+              }}
+            >
+              <svg
+                width="12"
+                height="10"
+                viewBox="0 0 12 10"
+                fill="none"
+                style={{
+                  opacity: agreed ? 1 : 0,
+                  transform: agreed ? 'scale(1)' : 'scale(0.6)',
+                  transition: 'opacity 0.12s ease, transform 0.12s ease',
+                }}
+              >
+                <path
+                  d="M1 5L4.2 8L11 1"
+                  stroke="#fff"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </span>
           이용약관 및 개인정보처리방침 동의
         </label>
         <button
