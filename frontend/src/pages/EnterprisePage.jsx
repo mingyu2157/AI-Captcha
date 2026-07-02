@@ -1,15 +1,60 @@
+// pages/EnterprisePage.jsx
+
 import React, { useState } from 'react';
 
 const VOLUMES = ['월 50만 건 이하', '월 50~200만 건', '월 200~500만 건', '월 500만 건 이상', '미정'];
 
+function AlertModal({ message, onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(36,27,21,.45)', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', padding: 24,
+    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        background: '#fff', borderRadius: 'var(--r)', padding: '28px 26px',
+        width: '100%', maxWidth: 360, boxShadow: 'var(--shadow-md)',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%', background: 'var(--peach)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 16px',
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--orange-2)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 9v4M12 17h.01"/>
+            <circle cx="12" cy="12" r="9"/>
+          </svg>
+        </div>
+        <p style={{ margin: '0 0 20px', fontSize: 14.5, color: 'var(--ink)', lineHeight: 1.6 }}>{message}</p>
+        <button
+          className="pg-btn primary"
+          style={{ width: '100%', padding: 12, fontSize: 14 }}
+          onClick={onClose}
+        >
+          확인
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function EnterprisePage({ closePage }) {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ company: '', name: '', email: '', phone: '', volume: '', message: '' });
+  const [attempted, setAttempted] = useState(false);
+  const [alertMsg, setAlertMsg] = useState(null);
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
+  const errorStyle = { border: '1.5px solid #c0392b' };
+
   const handleSubmit = () => {
-    if (!form.company || !form.name || !form.email) return alert('회사명, 담당자명, 이메일은 필수입니다.');
+    if (!form.company || !form.name || !form.email) {
+      setAttempted(true);
+      setAlertMsg('회사명, 담당자명, 이메일은 필수입니다.');
+      return;
+    }
     setSubmitted(true);
   };
 
@@ -37,12 +82,31 @@ export default function EnterprisePage({ closePage }) {
       <div className="pg-card" style={{ marginBottom: 16 }}>
         <div className="pg-label">기업 정보</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <input className="pg-input" placeholder="회사명 / 서비스명 *" value={form.company} onChange={set('company')} />
+          <input
+            className="pg-input"
+            placeholder="회사명 / 서비스명 *"
+            value={form.company}
+            onChange={set('company')}
+            style={attempted && !form.company ? errorStyle : {}}
+          />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <input className="pg-input" placeholder="담당자명 *" value={form.name} onChange={set('name')} />
+            <input
+              className="pg-input"
+              placeholder="담당자명 *"
+              value={form.name}
+              onChange={set('name')}
+              style={attempted && !form.name ? errorStyle : {}}
+            />
             <input className="pg-input" placeholder="전화번호 (선택)" value={form.phone} onChange={set('phone')} />
           </div>
-          <input className="pg-input" type="email" placeholder="연락 이메일 *" value={form.email} onChange={set('email')} />
+          <input
+            className="pg-input"
+            type="email"
+            placeholder="연락 이메일 *"
+            value={form.email}
+            onChange={set('email')}
+            style={attempted && !form.email ? errorStyle : {}}
+          />
         </div>
       </div>
 
@@ -74,6 +138,10 @@ export default function EnterprisePage({ closePage }) {
           문의 제출하기
         </button>
       </div>
+
+      {alertMsg && (
+        <AlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
+      )}
     </div>
   );
 }
